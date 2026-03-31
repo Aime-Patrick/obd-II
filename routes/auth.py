@@ -2,10 +2,12 @@ from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
 from models.user import UserCreate, UserLogin, UserResponse
 from auth.password_utils import hash_password, verify_password
 from auth.jwt_handler import create_access_token
+from auth.dependencies import get_current_user
 from config.database import get_database
 from services.email_service import email_service
 from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr
+from bson import ObjectId
 import secrets
 import string
 
@@ -177,7 +179,6 @@ async def get_current_user_info(
     db=Depends(get_database)
 ):
     """Validate the current JWT and return basic user info."""
-    from bson import ObjectId
     user = await db.users.find_one({"_id": ObjectId(current_user["sub"])})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
