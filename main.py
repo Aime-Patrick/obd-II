@@ -4,7 +4,7 @@ from config.database import connect_to_mongo, close_mongo_connection
 from routes import auth, vehicles, diagnostics, predict
 
 app = FastAPI(
-    title="Vehicle Diagnostic AI API",
+    title="SmartDriveX API",
     description="Smart Vehicle Health Assessment with AI-powered diagnostics",
     version="2.0.0"
 )
@@ -36,7 +36,7 @@ app.include_router(diagnostics.router)
 @app.get("/")
 def read_root():
     return {
-        "message": "Vehicle Diagnostic AI API v2.0",
+        "message": "SmartDriveX API v2.0",
         "status": "running",
         "features": ["Authentication", "Vehicle Management", "AI Diagnostics", "Recommendations"]
     }

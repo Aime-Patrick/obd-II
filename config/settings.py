@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     MAIL_FROM: str = "noreply@smartdrivex.com"
     MAIL_PORT: int = 587
     MAIL_SERVER: str = "smtp.gmail.com"
-    MAIL_FROM_NAME: str = "SmartDriveX AI"
+    MAIL_FROM_NAME: str = "SmartDriveX"
     MAIL_STARTTLS: bool = True
     MAIL_SSL_TLS: bool = False
     USE_CREDENTIALS: bool = True
