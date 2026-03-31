@@ -21,5 +21,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # ignore unknown env vars like PORT
 
 settings = Settings()
