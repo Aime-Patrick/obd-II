@@ -169,3 +169,20 @@ async def reset_password(body: ResetPasswordRequest, db=Depends(get_database)):
         {"email": body.email}, {"$set": {"used": True}}
     )
     return {"message": "Password reset successfully."}
+
+
+@router.get("/me")
+async def get_current_user_info(
+    current_user: dict = Depends(get_current_user),
+    db=Depends(get_database)
+):
+    """Validate the current JWT and return basic user info."""
+    from bson import ObjectId
+    user = await db.users.find_one({"_id": ObjectId(current_user["sub"])})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": str(user["_id"]),
+        "email": user["email"],
+        "full_name": user["full_name"],
+    }
