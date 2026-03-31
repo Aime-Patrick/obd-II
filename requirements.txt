@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+joblib
+scikit-learn
+pandas
+numpy
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+motor
+pymongo
+pydantic[email]
+python-dotenv
+pydantic-settings
+fastapi-mail
+jinja2

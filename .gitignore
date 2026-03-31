@@ -1,0 +1,26 @@
+# Environment variables — NEVER commit these
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+
+# ML model and data (tracked via Git LFS — see .gitattributes)
+# ml/obd_model.joblib  ← tracked by LFS
+# ml/cleaned_data.csv  ← tracked by LFS
+ml/real_data.csv
+ml/combined_data.csv
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

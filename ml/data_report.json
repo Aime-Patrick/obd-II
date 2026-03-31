@@ -1,0 +1,301 @@
+[
+    {
+        "file": "exp1_14drivers_14cars_dailyRoutes.csv",
+        "shape": [
+            60439,
+            33
+        ],
+        "columns": [
+            "TIMESTAMP",
+            "MARK",
+            "MODEL",
+            "CAR_YEAR",
+            "ENGINE_POWER",
+            "AUTOMATIC",
+            "VEHICLE_ID",
+            "BAROMETRIC_PRESSURE(KPA)",
+            "ENGINE_COOLANT_TEMP",
+            "FUEL_LEVEL",
+            "ENGINE_LOAD",
+            "AMBIENT_AIR_TEMP",
+            "ENGINE_RPM",
+            "INTAKE_MANIFOLD_PRESSURE",
+            "MAF",
+            "LONG TERM FUEL TRIM BANK 2",
+            "FUEL_TYPE",
+            "AIR_INTAKE_TEMP",
+            "FUEL_PRESSURE",
+            "SPEED",
+            "SHORT TERM FUEL TRIM BANK 2",
+            "SHORT TERM FUEL TRIM BANK 1",
+            "ENGINE_RUNTIME",
+            "THROTTLE_POS",
+            "DTC_NUMBER",
+            "TROUBLE_CODES",
+            "TIMING_ADVANCE",
+            "EQUIV_RATIO",
+            "MIN",
+            "HOURS",
+            "DAYS_OF_WEEK",
+            "MONTHS",
+            "YEAR"
+        ],
+        "target_columns": [
+            "DTC_NUMBER",
+            "TROUBLE_CODES"
+        ],
+        "details": {
+            "DTC_NUMBER": {
+                "count": 47142,
+                "unique_count": 7,
+                "samples": [
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes"
+                ],
+                "top_values": {
+                    "MIL is OFF0 codes": 41064,
+                    "MIL is OFF1 codes": 6071,
+                    "MIL is OFF107 codes": 2,
+                    "MIL is OFF16 codes": 2,
+                    "MIL is ON0 codes": 1,
+                    "MIL is OFF65 codes": 1,
+                    "MIL is OFF8 codes": 1
+                }
+            },
+            "TROUBLE_CODES": {
+                "count": 11925,
+                "unique_count": 13,
+                "samples": [
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133",
+                    "P0133"
+                ],
+                "top_values": {
+                    "P0133": 6070,
+                    "C0300": 5673,
+                    "P0079P2004P3000": 48,
+                    "P0079C1004P3000": 30,
+                    "P0078U1004P3000": 29,
+                    "P007EP2036P18D0": 20,
+                    "P007EP2036P18E0": 18,
+                    "P0078B0004P3000": 12,
+                    "P007EP2036P18F0": 9,
+                    "P0079P1004P3000": 5
+                }
+            }
+        }
+    },
+    {
+        "file": "exp2_19drivers_1car_1route.csv",
+        "shape": [
+            8261,
+            28
+        ],
+        "columns": [
+            "TIME",
+            "LATITUDE",
+            "LONGITUDE",
+            "ALTITUDE",
+            "VEHICLE_ID",
+            "BAROMETRIC_PRESSURE",
+            "ENGINE_COOLANT_TEMP",
+            "FUEL_LEVEL",
+            "ENGINE_LOAD",
+            "AMBIENT_AIR_TEMP",
+            "ENGINE_RPM",
+            "INTAKE_MANIFOLD_PRESSURE",
+            "MAF",
+            "Term Fuel Trim Bank 1",
+            "FUEL_ECONOMY",
+            "Long Term Fuel Trim Bank 2",
+            "FUEL_TYPE",
+            "AIR_INTAKE_TEMP",
+            "FUEL_PRESSURE",
+            "SPEED",
+            "Short Term Fuel Trim Bank 2",
+            "Short Term Fuel Trim Bank 1",
+            "ENGINE_RUNTIME",
+            "THROTTLE_POS",
+            "DTC_NUMBER",
+            "TROUBLE_CODES",
+            "TIMING_ADVANCE",
+            "EQUIV_RATIO"
+        ],
+        "target_columns": [
+            "DTC_NUMBER",
+            "TROUBLE_CODES"
+        ],
+        "details": {
+            "DTC_NUMBER": {
+                "count": 8216,
+                "unique_count": 4,
+                "samples": [
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes"
+                ],
+                "top_values": {
+                    "MIL is OFF0 codes": 7787,
+                    "4101000761001:00410100076100": 406,
+                    "4101000761601:00410100076160": 20,
+                    "1:6032000007E806": 3
+                }
+            }
+        }
+    },
+    {
+        "file": "exp3_4drivers_1car_1route.csv",
+        "shape": [
+            1743,
+            30
+        ],
+        "columns": [
+            "ord",
+            "TIME",
+            "LATITUDE",
+            "LONGITUDE",
+            "ALTITUDE",
+            "VEHICLE_ID",
+            "BAROMETRIC_PRESSURE",
+            "ENGINE_COOLANT_TEMP",
+            "FUEL_LEVEL",
+            "ENGINE_LOAD",
+            "AMBIENT_AIR_TEMP",
+            "ENGINE_RPM",
+            "INTAKE_MANIFOLD_PRESSURE",
+            "MAF",
+            "TERM FUEL TRIM BANK 1",
+            "FUEL_ECONOMY",
+            "LONG TERM FUEL TRIM BANK 2",
+            "FUEL_TYPE",
+            "AIR_INTAKE_TEMP",
+            "FUEL_PRESSURE",
+            "SPEED",
+            "SHORT TERM FUEL TRIM BANK 2",
+            "SHORT TERM FUEL TRIM BANK 1",
+            "ENGINE_RUNTIME",
+            "THROTTLE_POS",
+            "DTC_NUMBER",
+            "TROUBLE_CODES",
+            "TIMING_ADVANCE",
+            "EQUIV_RATIO",
+            "aqui"
+        ],
+        "target_columns": [
+            "DTC_NUMBER",
+            "TROUBLE_CODES"
+        ],
+        "details": {
+            "DTC_NUMBER": {
+                "count": 1638,
+                "unique_count": 1,
+                "samples": [
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes",
+                    "MIL is OFF0 codes"
+                ],
+                "top_values": {
+                    "MIL is OFF0 codes": 1638
+                }
+            },
+            "TROUBLE_CODES": {
+                "count": 62,
+                "unique_count": 1,
+                "samples": [
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0,
+                    4300.0
+                ],
+                "top_values": {
+                    "4300.0": 62
+                }
+            }
+        }
+    }
+]
