@@ -4,6 +4,8 @@ from datetime import datetime
 from bson import ObjectId
 
 class DiagnosticCreate(BaseModel):
+    model_config = {'protected_namespaces': ()}
+
     vehicle_id: str
     sensor_data: Dict[str, float]
     mark: Optional[str] = None

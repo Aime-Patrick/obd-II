@@ -27,6 +27,8 @@ def load_ml_model():
         recommendation_engine = RecommendationEngine()
 
 class DiagnosticRequest(BaseModel):
+    model_config = {'protected_namespaces': ()}
+
     sensors: Dict[str, float]
     mark: Optional[str] = None
     model_name: Optional[str] = None
