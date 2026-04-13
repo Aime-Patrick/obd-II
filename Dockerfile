@@ -15,11 +15,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the backend code
 COPY . .
 
-# Train the model if not present
-RUN if [ ! -f "ml/obd_model.joblib" ]; then \
-    echo "Training ML model..." && \
-    python ml/train_model.py; \
-    fi
+# Always retrain the model at build time so it is compatible with the
+# exact numpy / scikit-learn versions installed above.
+# This avoids "MT19937 is not a known BitGenerator" pickle errors caused
+# by loading a .joblib file that was saved on a different numpy version.
+RUN python ml/train_model.py
 
 EXPOSE ${PORT:-8001}
 

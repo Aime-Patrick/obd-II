@@ -39,8 +39,11 @@ async def create_diagnostic(
     current_user: dict = Depends(get_current_user),
     db=Depends(get_database)
 ):
-    load_ml_model()
-    
+    try:
+        load_ml_model()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ML model failed to load: {e}")
+
     # Verify vehicle belongs to user
     vehicle = await db.vehicles.find_one({
         "_id": ObjectId(diagnostic.vehicle_id),
@@ -94,8 +97,11 @@ async def create_diagnostic(
         input_data["INTAKE_TEMP_DIFF"] = temp - ait
 
     df_input = pd.DataFrame([input_data])[feature_order]
-    ml_prediction = bool(model.predict(df_input)[0])
-    ml_confidence = float(max(model.predict_proba(df_input)[0]))
+    try:
+        ml_prediction = bool(model.predict(df_input)[0])
+        ml_confidence = float(max(model.predict_proba(df_input)[0]))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ML prediction failed: {e}")
 
     # ── Step 3: Combine signals ───────────────────────────────────────────────
     if critical_count > 0:

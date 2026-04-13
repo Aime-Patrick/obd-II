@@ -1,0 +1,21 @@
+# Exclude stale pre-built model files — they get rebuilt during docker build
+# to ensure numpy/sklearn version compatibility
+ml/obd_model.joblib
+model_metadata.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Virtual environment
+venv/
+.venv/
+
+# Local env overrides
+.env.local
+
+# Git
+.git/
+.gitignore

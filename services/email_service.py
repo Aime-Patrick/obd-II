@@ -7,26 +7,36 @@ from jinja2 import Environment, FileSystemLoader
 
 class EmailService:
     def __init__(self):
-        self.config = ConnectionConfig(
-            MAIL_USERNAME=settings.MAIL_USERNAME,
-            MAIL_PASSWORD=settings.MAIL_PASSWORD,
-            MAIL_FROM=settings.MAIL_FROM,
-            MAIL_PORT=settings.MAIL_PORT,
-            MAIL_SERVER=settings.MAIL_SERVER,
-            MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
-            MAIL_STARTTLS=settings.MAIL_STARTTLS,
-            MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
-            USE_CREDENTIALS=settings.USE_CREDENTIALS,
-            VALIDATE_CERTS=settings.VALIDATE_CERTS
-        )
-        self.fm = FastMail(self.config)
-        
-        # Setup Jinja2 templates for emails if needed later
-        # For now we'll use simple HTML strings
-        
+        self._fm = None
+
+    def _get_fm(self):
+        """Lazy-initialize FastMail so a bad config doesn't crash the whole app."""
+        if self._fm is None:
+            try:
+                config = ConnectionConfig(
+                    MAIL_USERNAME=settings.MAIL_USERNAME,
+                    MAIL_PASSWORD=settings.MAIL_PASSWORD,
+                    MAIL_FROM=settings.MAIL_FROM,
+                    MAIL_PORT=settings.MAIL_PORT,
+                    MAIL_SERVER=settings.MAIL_SERVER,
+                    MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
+                    MAIL_STARTTLS=settings.MAIL_STARTTLS,
+                    MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
+                    USE_CREDENTIALS=settings.USE_CREDENTIALS,
+                    VALIDATE_CERTS=settings.VALIDATE_CERTS
+                )
+                self._fm = FastMail(config)
+            except Exception as e:
+                import logging
+                logging.warning(f"Email service init failed: {e}")
+                return None
+        return self._fm
     async def send_diagnostic_report(self, email: EmailStr, vehicle_info: dict, analysis: dict):
         """Sends a detailed diagnostic report after a scan."""
-        
+        fm = self._get_fm()
+        if fm is None:
+            return
+
         abnormal = analysis.get("abnormal_sensors", [])
         recommendations = analysis.get("recommendations", [])
         
@@ -61,17 +71,24 @@ class EmailService:
         </html>
         """
         
-        message = MessageSchema(
-            subject=f"Diagnostic Report: {vehicle_info.get('make')} {vehicle_info.get('model')}",
-            recipients=[email],
-            body=html,
-            subtype=MessageType.html
-        )
-        
-        await self.fm.send_message(message)
+        try:
+            message = MessageSchema(
+                subject=f"Diagnostic Report: {vehicle_info.get('make')} {vehicle_info.get('model')}",
+                recipients=[email],
+                body=html,
+                subtype=MessageType.html
+            )
+            await fm.send_message(message)
+        except Exception as e:
+            import logging
+            logging.warning(f"Failed to send diagnostic report email: {e}")
 
     async def send_maintenance_alert(self, email: EmailStr, vehicle_info: dict, alert_type: str, details: str):
         """Sends a proactive maintenance alert."""
+        fm = self._get_fm()
+        if fm is None:
+            return
+
         html = f"""
         <html>
             <body style="font-family: sans-serif;">
@@ -84,16 +101,24 @@ class EmailService:
             </body>
         </html>
         """
-        message = MessageSchema(
-            subject=f"Maintenance Alert: {vehicle_info.get('make')}",
-            recipients=[email],
-            body=html,
-            subtype=MessageType.html
-        )
-        await self.fm.send_message(message)
+        try:
+            message = MessageSchema(
+                subject=f"Maintenance Alert: {vehicle_info.get('make')}",
+                recipients=[email],
+                body=html,
+                subtype=MessageType.html
+            )
+            await fm.send_message(message)
+        except Exception as e:
+            import logging
+            logging.warning(f"Failed to send maintenance alert email: {e}")
 
     async def send_verification_code(self, email: EmailStr, code: str):
         """Sends a security verification code."""
+        fm = self._get_fm()
+        if fm is None:
+            return
+
         html = f"""
         <html>
             <body style="font-family: sans-serif; text-align: center;">
@@ -106,16 +131,24 @@ class EmailService:
             </body>
         </html>
         """
-        message = MessageSchema(
-            subject="SmartDriveX Verification Code",
-            recipients=[email],
-            body=html,
-            subtype=MessageType.html
-        )
-        await self.fm.send_message(message)
+        try:
+            message = MessageSchema(
+                subject="SmartDriveX Verification Code",
+                recipients=[email],
+                body=html,
+                subtype=MessageType.html
+            )
+            await fm.send_message(message)
+        except Exception as e:
+            import logging
+            logging.warning(f"Failed to send verification code email: {e}")
 
     async def send_welcome_email(self, email: EmailStr, full_name: str):
         """Sends a welcome email after registration."""
+        fm = self._get_fm()
+        if fm is None:
+            return
+
         html = f"""
         <html>
             <body style="font-family: sans-serif; color: #333;">
@@ -137,16 +170,24 @@ class EmailService:
             </body>
         </html>
         """
-        message = MessageSchema(
-            subject="Welcome to SmartDriveX AI",
-            recipients=[email],
-            body=html,
-            subtype=MessageType.html
-        )
-        await self.fm.send_message(message)
+        try:
+            message = MessageSchema(
+                subject="Welcome to SmartDriveX AI",
+                recipients=[email],
+                body=html,
+                subtype=MessageType.html
+            )
+            await fm.send_message(message)
+        except Exception as e:
+            import logging
+            logging.warning(f"Failed to send welcome email: {e}")
 
     async def send_password_reset_otp(self, email: EmailStr, otp: str):
         """Sends a password reset OTP code."""
+        fm = self._get_fm()
+        if fm is None:
+            return
+
         html = f"""
         <html>
             <body style="font-family: sans-serif; background:#f5f5f7; padding:40px 0;">
@@ -177,13 +218,17 @@ class EmailService:
             </body>
         </html>
         """
-        message = MessageSchema(
-            subject="SmartDriveX — Password Reset Code",
-            recipients=[email],
-            body=html,
-            subtype=MessageType.html,
-        )
-        await self.fm.send_message(message)
+        try:
+            message = MessageSchema(
+                subject="SmartDriveX — Password Reset Code",
+                recipients=[email],
+                body=html,
+                subtype=MessageType.html,
+            )
+            await fm.send_message(message)
+        except Exception as e:
+            import logging
+            logging.warning(f"Failed to send password reset OTP email: {e}")
 
 # Global instance
 email_service = EmailService()
