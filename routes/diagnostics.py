@@ -52,7 +52,15 @@ async def create_diagnostic(
     
     if not vehicle:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found")
-    
+
+    # Reject requests where all sensor values are zero — no real OBD data
+    non_zero = [v for v in diagnostic.sensor_data.values() if v != 0.0]
+    if not non_zero:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No valid sensor data. Connect your OBD-II device and try again."
+        )
+
     # ── Step 1: Rule-based sensor analysis (primary signal) ──────────────────
     sensor_analyzer_instance = SensorAnalyzer()
     abnormal_sensors = sensor_analyzer_instance.analyze_sensors(diagnostic.sensor_data)
