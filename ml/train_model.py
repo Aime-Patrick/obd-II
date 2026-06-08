@@ -15,6 +15,8 @@ import numpy as np
 import os
 import json
 import joblib
+import shutil
+from datetime import datetime, timezone
 from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.preprocessing import StandardScaler
@@ -32,6 +34,7 @@ DATA_PATH  = os.environ.get(
 )
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "obd_model.joblib")
 META_PATH  = os.path.join(os.path.dirname(__file__), "..", "model_metadata.json")
+METRICS_PATH = os.path.join(os.path.dirname(__file__), "training_metrics.json")
 
 # All sensor features present in training data AND polled by the app.
 # Excludes: car make/model one-hots, time columns (MIN/HOURS/etc.),
@@ -162,9 +165,24 @@ importances = pd.DataFrame({
 print("\nFeature Importances:")
 print(importances.to_string(index=False))
 
-# ── Save model ────────────────────────────────────────────────────────────────
+# ── Save model (atomic swap — safe while API serves traffic) ─────────────────
 
-joblib.dump(pipeline, MODEL_PATH)
+trained_at = datetime.now(timezone.utc).isoformat()
+metrics = {
+    "trained_at": trained_at,
+    "accuracy": float(accuracy_score(y_test, y_pred)),
+    "f1": float(f1_score(y_test, y_pred)),
+    "roc_auc": float(roc_auc_score(y_test, y_proba)),
+    "cv_roc_auc_mean": float(cv_scores.mean()),
+    "cv_roc_auc_std": float(cv_scores.std()),
+    "train_samples": int(len(X_train)),
+    "test_samples": int(len(X_test)),
+    "data_path": DATA_PATH,
+}
+
+model_tmp = MODEL_PATH + ".tmp"
+joblib.dump(pipeline, model_tmp)
+shutil.move(model_tmp, MODEL_PATH)
 print(f"\nModel saved → {MODEL_PATH}")
 
 # ── Save metadata — default values used when a sensor is not available ────────
@@ -185,8 +203,17 @@ medians["INTAKE_TEMP_DIFF"]   = (
 
 # Store the ordered feature list so the route knows the exact column order
 medians["__feature_order__"] = list(X.columns)
+medians["__trained_at__"] = trained_at
 
-with open(META_PATH, "w") as f:
+meta_tmp = META_PATH + ".tmp"
+with open(meta_tmp, "w", encoding="utf-8") as f:
     json.dump(medians, f, indent=4)
+shutil.move(meta_tmp, META_PATH)
 print(f"Metadata saved → {META_PATH}")
-print("\nDone! Restart the backend to load the new model.")
+
+metrics_tmp = METRICS_PATH + ".tmp"
+with open(metrics_tmp, "w", encoding="utf-8") as f:
+    json.dump(metrics, f, indent=4)
+shutil.move(metrics_tmp, METRICS_PATH)
+print(f"Metrics saved → {METRICS_PATH}")
+print("\nDone! Call ml_model.reload() or POST /admin/retrain to serve the new model.")

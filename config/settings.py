@@ -19,6 +19,21 @@ class Settings(BaseSettings):
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
 
+    # Admin dashboard login (seeded when admin_users collection is empty)
+    ADMIN_EMAIL: str = "admin@smartdrivex.com"
+    ADMIN_PASSWORD: str = ""
+    ADMIN_FULL_NAME: str = "SmartDriveX Admin"
+    ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
+
+    # Admin API keys (optional — scripts / legacy)
+    ADMIN_API_KEY: str = ""
+    ADMIN_BOOTSTRAP_KEY: str = ""
+    MIN_LABELED_SAMPLES: int = 50
+    MIN_LABELS_PER_CLASS: int = 5
+    METRIC_TOLERANCE: float = 0.005  # allow tiny regression vs previous model
+    SCHEDULE_RETRAIN_ENABLED: bool = False
+    SCHEDULE_RETRAIN_INTERVAL_DAYS: int = 7
+
     class Config:
         env_file = ".env"
         extra = "ignore"  # ignore unknown env vars like PORT

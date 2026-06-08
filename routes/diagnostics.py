@@ -6,31 +6,14 @@ from config.database import get_database
 from datetime import datetime
 from bson import ObjectId
 from typing import List, Dict, Any
-import joblib
-import pandas as pd
-import json
-import os
 from services.recommendation_engine import RecommendationEngine
 from services.email_service import email_service
 from services.sensor_analyzer import SensorAnalyzer
+from services import ml_model
 
 router = APIRouter(prefix="/diagnostics", tags=["Diagnostics"])
 
-# Load ML model
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "ml", "obd_model.joblib")
-METADATA_PATH = os.path.join(os.path.dirname(__file__), "..", "model_metadata.json")
-
-model = None
-metadata = None
-recommendation_engine = None
-
-def load_ml_model():
-    global model, metadata, recommendation_engine
-    if model is None:
-        model = joblib.load(MODEL_PATH)
-        with open(METADATA_PATH, "r") as f:
-            metadata = json.load(f)
-        recommendation_engine = RecommendationEngine()
+recommendation_engine = RecommendationEngine()
 
 @router.post("", response_model=DiagnosticResponse, status_code=status.HTTP_201_CREATED)
 async def create_diagnostic(
@@ -40,7 +23,7 @@ async def create_diagnostic(
     db=Depends(get_database)
 ):
     try:
-        load_ml_model()
+        ml_model.ensure_loaded()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"ML model failed to load: {e}")
 
@@ -69,45 +52,8 @@ async def create_diagnostic(
     warning_count  = sum(1 for s in abnormal_sensors if s["status"] == "warning")
     
     # ── Step 2: ML model ─────────────────────────────────────────────────────
-    # Build input using all available sensor readings.
-    # Fall back to training medians for any sensor the device didn't send.
-    feature_order = metadata.get("__feature_order__", list(metadata.keys()))
-    feature_order = [f for f in feature_order if f != "__feature_order__"]
-
-    input_data = {}
-    for feat in feature_order:
-        # Check if the app sent this sensor (case-insensitive)
-        matched = next(
-            (v for k, v in diagnostic.sensor_data.items()
-             if k.upper().strip().replace(" ", "_") == feat),
-            None
-        )
-        input_data[feat] = matched if matched is not None else metadata.get(feat, 0.0)
-
-    # Compute derived features
-    rpm   = input_data.get("ENGINE_RPM", 1)
-    load  = input_data.get("ENGINE_LOAD", 1)
-    temp  = input_data.get("ENGINE_COOLANT_TEMP", 0)
-    thr   = input_data.get("THROTTLE_POS", 0)
-    ait   = input_data.get("AIR_INTAKE_TEMP", temp)
-    stft1 = input_data.get("SHORT_TERM_FUEL_TRIM_BANK_1", 0)
-    ltft2 = input_data.get("LONG_TERM_FUEL_TRIM_BANK_2", 0)
-
-    if "RPM_LOAD_RATIO" in feature_order:
-        input_data["RPM_LOAD_RATIO"] = rpm / max(load, 1)
-    if "TEMP_RPM_RATIO" in feature_order:
-        input_data["TEMP_RPM_RATIO"] = temp / max(rpm, 1)
-    if "THROTTLE_LOAD_DIFF" in feature_order:
-        input_data["THROTTLE_LOAD_DIFF"] = thr - load
-    if "FUEL_TRIM_TOTAL" in feature_order:
-        input_data["FUEL_TRIM_TOTAL"] = stft1 + ltft2
-    if "INTAKE_TEMP_DIFF" in feature_order:
-        input_data["INTAKE_TEMP_DIFF"] = temp - ait
-
-    df_input = pd.DataFrame([input_data])[feature_order]
     try:
-        ml_prediction = bool(model.predict(df_input)[0])
-        ml_confidence = float(max(model.predict_proba(df_input)[0]))
+        ml_prediction, ml_confidence = ml_model.predict_from_sensors(diagnostic.sensor_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"ML prediction failed: {e}")
 
@@ -137,6 +83,7 @@ async def create_diagnostic(
     )
     
     # Save to database
+    model_version = ml_model.get_info().get("model_version")
     diagnostic_dict = {
         "user_id": ObjectId(current_user["sub"]),
         "vehicle_id": ObjectId(diagnostic.vehicle_id),
@@ -146,6 +93,7 @@ async def create_diagnostic(
         "severity": severity,
         "sensor_data": diagnostic.sensor_data,
         "analysis": analysis,
+        "model_version": model_version,
         "timestamp": datetime.utcnow()
     }
     
@@ -190,6 +138,7 @@ async def create_diagnostic(
         severity=diagnostic_dict["severity"],
         sensor_data=diagnostic_dict["sensor_data"],
         analysis=diagnostic_dict["analysis"],
+        model_version=diagnostic_dict.get("model_version"),
         timestamp=diagnostic_dict["timestamp"]
     )
 
@@ -216,6 +165,7 @@ async def get_diagnostics(
             severity=d["severity"],
             sensor_data=d["sensor_data"],
             analysis=d.get("analysis"),
+            model_version=d.get("model_version"),
             timestamp=d["timestamp"]
         )
         for d in diagnostics
@@ -289,6 +239,7 @@ async def get_diagnostic(
         severity=diagnostic["severity"],
         sensor_data=diagnostic["sensor_data"],
         analysis=diagnostic.get("analysis"),
+        model_version=diagnostic.get("model_version"),
         timestamp=diagnostic["timestamp"]
     )
 

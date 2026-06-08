@@ -21,6 +21,7 @@ class DiagnosticResponse(BaseModel):
     severity: str
     sensor_data: Dict[str, float]
     analysis: Optional[Dict[str, Any]] = None
+    model_version: Optional[str] = None
     timestamp: datetime
 
     class Config:
