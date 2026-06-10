@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel, Field
 from services import retrain_service, ml_model, admin_key_service, system_settings_service
+from services import app_release_service
 
 router = APIRouter(
     prefix="/admin",
@@ -377,4 +378,59 @@ async def update_retrain_settings(
         updated_by_key_id=get_admin_key_id(request),
     )
     return _serialize_retrain_settings(cfg)
+
+
+# ── 10. Mobile app OTA release (Android APK) ──────────────────────────────────
+
+
+class AppReleaseBody(BaseModel):
+    latest_version: str = Field(..., min_length=1, max_length=32)
+    min_version: str = Field(..., min_length=1, max_length=32)
+    build_number: int = Field(..., ge=1, le=999999)
+    apk_url: str = Field(..., max_length=2048)
+    release_notes: str = Field(default="", max_length=8000)
+    force_update: bool = False
+    enabled: bool = True
+
+
+def _serialize_app_release(cfg: dict) -> dict:
+    out = dict(cfg)
+    ts = out.get("updated_at")
+    if hasattr(ts, "isoformat"):
+        out["updated_at"] = ts.isoformat()
+    return out
+
+
+@router.get("/settings/app-release")
+async def get_app_release_settings(db=Depends(get_database)):
+    cfg = await app_release_service.get_release(db)
+    return _serialize_app_release(cfg)
+
+
+@router.patch("/settings/app-release")
+async def update_app_release_settings(
+    body: AppReleaseBody,
+    request: Request,
+    db=Depends(get_database),
+):
+    if body.enabled and not body.apk_url.startswith("https://"):
+        raise HTTPException(
+            status_code=422,
+            detail="apk_url must be an https:// URL when releases are enabled.",
+        )
+    try:
+        cfg = await app_release_service.update_release(
+            db,
+            latest_version=body.latest_version,
+            min_version=body.min_version,
+            build_number=body.build_number,
+            apk_url=body.apk_url,
+            release_notes=body.release_notes,
+            force_update=body.force_update,
+            enabled=body.enabled,
+            updated_by=get_admin_key_id(request),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return _serialize_app_release(cfg)
 

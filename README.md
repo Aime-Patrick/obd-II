@@ -198,6 +198,8 @@ Retrain thresholds can also be changed at runtime via `PATCH /admin/settings/ret
 |--------|------|------|-------------|
 | `GET` | `/` | — | API info |
 | `GET` | `/health` | — | Health + loaded model version/metrics |
+| `GET` | `/app/version` | — | Mobile OTA check (`platform`, `current_version`, `current_build`) |
+| `GET` | `/releases/{file}` | — | Static APK hosting (upload to `backend/releases/`) |
 | `POST` | `/predict` | — | **Removed** — returns 410; use `/diagnostics` |
 
 ### Mobile (Bearer JWT)
@@ -238,6 +240,7 @@ Retrain thresholds can also be changed at runtime via `PATCH /admin/settings/ret
 | `GET` | `/admin/retrain/history` | Audit timeline |
 | `POST` | `/admin/retrain/rollback` | Restore previous model |
 | `GET` / `PATCH` | `/admin/settings/retrain` | Thresholds + schedule |
+| `GET` / `PATCH` | `/admin/settings/app-release` | Android OTA version + APK URL |
 | `GET` / `POST` | `/admin/keys` | Admin API key management |
 
 ---
