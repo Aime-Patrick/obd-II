@@ -67,9 +67,10 @@ app.include_router(admin_auth.router)
 app.include_router(admin.router)
 app.include_router(app_release.router)
 
-_RELEASES_DIR = os.path.join(os.path.dirname(__file__), "releases")
-os.makedirs(_RELEASES_DIR, exist_ok=True)
-app.mount("/releases", StaticFiles(directory=_RELEASES_DIR), name="releases")
+from services.app_release_service import RELEASES_DIR
+
+os.makedirs(RELEASES_DIR, exist_ok=True)
+app.mount("/releases", StaticFiles(directory=RELEASES_DIR), name="releases")
 
 @app.get("/")
 def read_root():

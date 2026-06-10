@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     SCHEDULE_RETRAIN_ENABLED: bool = False
     SCHEDULE_RETRAIN_INTERVAL_DAYS: int = 7
 
+    # Public API base URL for generated APK links (no trailing slash)
+    PUBLIC_API_URL: str = ""
+
     class Config:
         env_file = ".env"
         extra = "ignore"  # ignore unknown env vars like PORT

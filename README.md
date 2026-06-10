@@ -241,6 +241,7 @@ Retrain thresholds can also be changed at runtime via `PATCH /admin/settings/ret
 | `POST` | `/admin/retrain/rollback` | Restore previous model |
 | `GET` / `PATCH` | `/admin/settings/retrain` | Thresholds + schedule |
 | `GET` / `PATCH` | `/admin/settings/app-release` | Android OTA version + APK URL |
+| `POST` | `/admin/settings/app-release/upload` | Upload APK to `backend/releases/` (admin auth) |
 | `GET` / `POST` | `/admin/keys` | Admin API key management |
 
 ---

@@ -2,8 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
+import os
+import re
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, BinaryIO
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RELEASES_DIR = os.path.join(BASE_DIR, "releases")
+MAX_APK_BYTES = 150 * 1024 * 1024
+APK_MAGIC = b"PK\x03\x04"
 
 SETTINGS_ID = "app_release_android"
 DEFAULT_PLATFORM = "android"
@@ -135,6 +143,74 @@ def evaluate_update(
         "update_available": bool(update_available),
         "current_version": current_version,
         "current_build": current_build,
+    }
+
+
+def releases_dir() -> str:
+    os.makedirs(RELEASES_DIR, exist_ok=True)
+    return RELEASES_DIR
+
+
+def safe_apk_filename(version: str, build_number: int) -> str:
+    safe_v = re.sub(r"[^0-9a-zA-Z._-]", "", (version or "").strip()) or "0.0.0"
+    return f"smartdrivex-{safe_v}-b{int(build_number)}.apk"
+
+
+def build_public_apk_url(base_url: str, filename: str) -> str:
+    return f"{base_url.rstrip('/')}/releases/{filename}"
+
+
+def is_valid_public_apk_url(url: str) -> bool:
+    return url.startswith("https://") or url.startswith("http://localhost") or url.startswith(
+        "http://127.0.0.1"
+    )
+
+
+def save_uploaded_apk(file_obj: BinaryIO, filename: str) -> dict[str, Any]:
+    """Stream APK to releases/ with size limit and SHA-256."""
+    if not filename.lower().endswith(".apk"):
+        raise ValueError("Only .apk files are allowed.")
+
+    releases_dir()
+    dest = os.path.join(RELEASES_DIR, filename)
+    tmp = dest + ".uploading"
+
+    sha = hashlib.sha256()
+    size = 0
+    validated_magic = False
+
+    try:
+        with open(tmp, "wb") as out:
+            while True:
+                chunk = file_obj.read(1024 * 1024)
+                if not chunk:
+                    break
+                if not validated_magic:
+                    if not chunk.startswith(APK_MAGIC):
+                        raise ValueError("File is not a valid APK (ZIP archive).")
+                    validated_magic = True
+                size += len(chunk)
+                if size > MAX_APK_BYTES:
+                    raise ValueError(
+                        f"APK exceeds maximum size of {MAX_APK_BYTES // (1024 * 1024)} MB."
+                    )
+                sha.update(chunk)
+                out.write(chunk)
+
+        if size == 0:
+            raise ValueError("Uploaded file is empty.")
+
+        os.replace(tmp, dest)
+    except Exception:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
+
+    return {
+        "filename": filename,
+        "size_bytes": size,
+        "sha256": sha.hexdigest(),
+        "path": dest,
     }
 
 

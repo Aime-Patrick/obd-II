@@ -3,13 +3,14 @@ Admin dashboard API routes.
 Requires X-Admin-API-Key when ADMIN_API_KEY is set in environment.
 """
 
-from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile
 from auth.admin_auth import verify_admin_access, get_admin_key_id
 from config.database import get_database
 from datetime import datetime, timedelta
 from collections import defaultdict
 from pydantic import BaseModel, Field
 from services import retrain_service, ml_model, admin_key_service, system_settings_service
+from config.settings import settings
 from services import app_release_service
 
 router = APIRouter(
@@ -413,10 +414,10 @@ async def update_app_release_settings(
     request: Request,
     db=Depends(get_database),
 ):
-    if body.enabled and not body.apk_url.startswith("https://"):
+    if body.enabled and not app_release_service.is_valid_public_apk_url(body.apk_url):
         raise HTTPException(
             status_code=422,
-            detail="apk_url must be an https:// URL when releases are enabled.",
+            detail="apk_url must be https:// (or http://localhost for dev) when enabled.",
         )
     try:
         cfg = await app_release_service.update_release(
@@ -433,4 +434,40 @@ async def update_app_release_settings(
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return _serialize_app_release(cfg)
+
+
+@router.post("/settings/app-release/upload")
+async def upload_app_release_apk(
+    request: Request,
+    file: UploadFile = File(...),
+    latest_version: str = Form(...),
+    build_number: int = Form(...),
+):
+    """Upload APK to server releases/ — admin only. Returns public apk_url."""
+    if build_number < 1 or build_number > 999999:
+        raise HTTPException(status_code=422, detail="build_number out of range.")
+
+    original = (file.filename or "").lower()
+    if not original.endswith(".apk"):
+        raise HTTPException(status_code=422, detail="Only .apk files are accepted.")
+
+    filename = app_release_service.safe_apk_filename(latest_version, build_number)
+
+    try:
+        saved = app_release_service.save_uploaded_apk(file.file, filename)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        await file.close()
+
+    base = (settings.PUBLIC_API_URL or str(request.base_url)).rstrip("/")
+    apk_url = app_release_service.build_public_apk_url(base, filename)
+
+    return {
+        "message": "APK uploaded successfully.",
+        "apk_url": apk_url,
+        "filename": saved["filename"],
+        "size_bytes": saved["size_bytes"],
+        "sha256": saved["sha256"],
+    }
 
