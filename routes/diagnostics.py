@@ -9,11 +9,14 @@ from typing import List, Dict, Any
 from services.recommendation_engine import RecommendationEngine
 from services.email_service import email_service
 from services.sensor_analyzer import SensorAnalyzer
+from services.diagnostic_fusion import fuse_signals
+from services.trend_analyzer import TrendAnalyzer
 from services import ml_model
 
 router = APIRouter(prefix="/diagnostics", tags=["Diagnostics"])
 
 recommendation_engine = RecommendationEngine()
+trend_analyzer = TrendAnalyzer()
 
 @router.post("", response_model=DiagnosticResponse, status_code=status.HTTP_201_CREATED)
 async def create_diagnostic(
@@ -44,42 +47,42 @@ async def create_diagnostic(
             detail="No valid sensor data. Connect your OBD-II device and try again."
         )
 
-    # ── Step 1: Rule-based sensor analysis (primary signal) ──────────────────
-    sensor_analyzer_instance = SensorAnalyzer()
-    abnormal_sensors = sensor_analyzer_instance.analyze_sensors(diagnostic.sensor_data)
-    
-    critical_count = sum(1 for s in abnormal_sensors if s["status"] == "critical")
-    warning_count  = sum(1 for s in abnormal_sensors if s["status"] == "warning")
-    
+    # ── Step 1: Rule-based sensor analysis ───────────────────────────────────
+    sensor_analyzer = SensorAnalyzer()
+    abnormal_sensors = sensor_analyzer.analyze_sensors(diagnostic.sensor_data)
+
     # ── Step 2: ML model ─────────────────────────────────────────────────────
     try:
         ml_prediction, ml_confidence = ml_model.predict_from_sensors(diagnostic.sensor_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"ML prediction failed: {e}")
 
-    # ── Step 3: Combine signals ───────────────────────────────────────────────
-    if critical_count > 0:
-        prediction = True
-        confidence = max(ml_confidence, 0.92)
-        severity = "CRITICAL"
-    elif warning_count > 0:
-        prediction = True
-        confidence = max(ml_confidence, 0.78)
-        severity = "WARNING"
-    elif ml_prediction and ml_confidence > 0.70:
-        prediction = True
-        confidence = ml_confidence
-        severity = "CAUTION"
-    else:
-        prediction = False
-        confidence = 1.0 - ml_confidence if not ml_prediction else 0.65
-        severity = "HEALTHY"
-    
-    # Generate recommendations
+    # ── Step 3: Trend analysis from recent vehicle history ───────────────────
+    history = await db.diagnostics.find(
+        {
+            "vehicle_id": ObjectId(diagnostic.vehicle_id),
+            "user_id": ObjectId(current_user["sub"]),
+        }
+    ).sort("timestamp", -1).limit(8).to_list(8)
+    history.reverse()
+
+    skip_for_trend = {s["name"] for s in abnormal_sensors}
+    trend_recs = trend_analyzer.generate_trend_recommendations(
+        diagnostic.sensor_data,
+        history,
+        skip_sensors=skip_for_trend,
+    )
+
+    # ── Step 4: Combine signals + recommendations ────────────────────────────
+    prediction, confidence, severity = fuse_signals(
+        abnormal_sensors, ml_prediction, ml_confidence
+    )
     analysis = recommendation_engine.generate_recommendations(
         diagnostic.sensor_data,
         bool(prediction),
-        confidence
+        confidence,
+        abnormal_sensors=abnormal_sensors,
+        trend_recommendations=trend_recs,
     )
     
     # Save to database

@@ -14,11 +14,17 @@ The backend now includes an intelligent recommendation engine that analyzes sens
 - Priority-based recommendations (CRITICAL, HIGH, MEDIUM, LOW)
 - Category classification (Engine, Fuel, Air, Throttle, General)
 - Actionable steps for each issue
-- Cost estimates for repairs
 
-### 3. Predictive Warnings
-- Early detection of potential issues
-- Trend-based alerts (future enhancement)
+### 3. Predictive guidance
+- When ML detects a fault with moderate confidence (< 70%) and no rule-based sensor match, a **MEDIUM** priority recommendation is added
+
+### 4. Trend-based guidance
+- Compares the last 3–8 diagnostics for the same vehicle
+- If a sensor still reads **normal** but values are consistently rising (or falling for low-side sensors), a **Trend** recommendation is added
+- Skips sensors already flagged abnormal on the current scan
+
+### Endpoint
+- Use **`POST /diagnostics`** only. `POST /predict` returns **410 Gone**.
 
 ## API Response Structure
 
@@ -45,7 +51,6 @@ The backend now includes an intelligent recommendation engine that analyzes sens
         "category": "ENGINE",
         "message": "Stop vehicle immediately - Engine overheating detected",
         "action": "Turn off engine and check for leaks",
-        "estimated_cost": "$50-$200",
         "sensor": "ENGINE_COOLANT_TEMP",
         "current_value": "110 °C"
       }
@@ -89,7 +94,12 @@ The backend now includes an intelligent recommendation engine that analyzes sens
 7. **THROTTLE_POS** - Throttle position
 8. **SPEED** - Vehicle speed
 9. **AIR_INTAKE_TEMP** - Air intake temperature
-10. **AMBIENT_AIR_TEMP** - Ambient temperature
+10. **FUEL_LEVEL** - Tank level (%)
+11. **AMBIENT_AIR_TEMP** - Ambient temperature
+12. **SHORT_TERM_FUEL_TRIM_BANK_1** / **LONG_TERM_FUEL_TRIM_BANK_1**
+13. **SHORT_TERM_FUEL_TRIM_BANK_2** / **LONG_TERM_FUEL_TRIM_BANK_2**
+
+Sensors polled without rules yet: `ENGINE_RUNTIME`, `BAROMETRIC_PRESSURE`.
 
 ## Testing
 
@@ -106,11 +116,10 @@ python main.py
 ## Configuration
 
 Edit `rules/fault_rules.json` to customize:
-- Normal ranges for sensors
-- Warning thresholds
-- Critical thresholds
-- Recommendation messages
-- Cost estimates
+- `normal_range`, `warning_range`
+- `critical_threshold` (high-side) or `critical_low_threshold` (low-side, e.g. fuel pressure)
+- `warning_range_low` for bidirectional sensors (fuel trim)
+- `recommendations` and `actions` message text per severity
 
 ## Future Enhancements
 

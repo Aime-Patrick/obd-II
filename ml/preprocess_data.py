@@ -106,6 +106,7 @@ def preprocess_data(archive_path, output_path):
     print(f"Cleaned data saved to {output_path}")
 
 if __name__ == "__main__":
-    archive_dir = "d:/Project/vehicle-diagnostic-with-OBD_2/archive"
-    output_file = "d:/Project/vehicle-diagnostic-with-OBD_2/ml/cleaned_data.csv"
+    _here = os.path.dirname(os.path.abspath(__file__))
+    archive_dir = os.path.join(_here, "..", "..", "archive")
+    output_file = os.path.join(_here, "cleaned_data.csv")
     preprocess_data(archive_dir, output_file)

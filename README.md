@@ -38,7 +38,7 @@ Flutter app  ──Bluetooth──►  ELM327 OBD-II adapter
      ▼
 FastAPI (main.py)
      ├── routes/auth, vehicles, diagnostics
-     ├── routes/predict          (legacy, no auth)
+     ├── routes/predict          (deprecated → 410 Gone)
      ├── routes/admin_auth       (admin JWT login)
      └── routes/admin            (dashboard APIs)
               │
@@ -198,7 +198,7 @@ Retrain thresholds can also be changed at runtime via `PATCH /admin/settings/ret
 |--------|------|------|-------------|
 | `GET` | `/` | — | API info |
 | `GET` | `/health` | — | Health + loaded model version/metrics |
-| `POST` | `/predict` | — | Legacy ML predict (prefer `/diagnostics`) |
+| `POST` | `/predict` | — | **Removed** — returns 410; use `/diagnostics` |
 
 ### Mobile (Bearer JWT)
 
@@ -259,6 +259,16 @@ Retrain thresholds can also be changed at runtime via `PATCH /admin/settings/ret
 python ml/train_model.py
 ```
 
+**Compare candidate classifiers** (thesis Table 5.5:1 — Decision Tree, RF, SVM, GBM):
+
+```bash
+# Requires cleaned_data.csv (generate from ../archive if missing)
+python ml/preprocess_data.py
+python ml/compare_models.py
+```
+
+Outputs: `ml/model_comparison.json`, `.csv`, `.md`, `figure_5_5_model_comparison.png`.
+
 **Retrain with user labels** (via admin UI or API):
 
 ```bash
@@ -292,8 +302,9 @@ The admin retrain endpoint runs this pipeline in a background thread with promot
 ## Development
 
 ```bash
-# Regenerate thesis figures (learning curve, confusion matrix)
+# Regenerate thesis figures (learning curve, confusion matrix, model comparison)
 python ml/generate_figures.py
+python ml/compare_models.py
 
 # Explore dataset
 python ml/explore_data.py

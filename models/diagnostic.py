@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, Dict, List, Any
 from datetime import datetime
 from bson import ObjectId
@@ -12,6 +12,8 @@ class DiagnosticCreate(BaseModel):
     model_name: Optional[str] = None
 
 class DiagnosticResponse(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     id: str
     user_id: str
     vehicle_id: str
@@ -23,9 +25,6 @@ class DiagnosticResponse(BaseModel):
     analysis: Optional[Dict[str, Any]] = None
     model_version: Optional[str] = None
     timestamp: datetime
-
-    class Config:
-        json_encoders = {ObjectId: str}
 
 class DiagnosticInDB(BaseModel):
     id: Optional[ObjectId] = Field(alias="_id", default=None)

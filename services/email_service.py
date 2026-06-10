@@ -42,7 +42,7 @@ class EmailService:
         
         sensors_html = "".join([f"<li><b>{s['name']}:</b> {s['value']} {s['unit']} ({s['status']})</li>" for s in abnormal])
         rec_html = "".join([
-            f"<li><b>{r['message']}</b> — {r['action']} <em>({r.get('estimated_cost', 'N/A')})</em></li>"
+            f"<li><b>{r['message']}</b> — {r['action']}</li>"
             for r in recommendations
         ])
         

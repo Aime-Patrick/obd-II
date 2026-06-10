@@ -1,0 +1,46 @@
+{
+  "data_path": "E:\\Project\\vehicle-diagnostic-with-OBD_2\\backend\\ml\\cleaned_data.csv",
+  "train_samples": 56354,
+  "test_samples": 14089,
+  "feature_count": 21,
+  "random_state": 42,
+  "selected_model": "Gradient Boosting",
+  "results": [
+    {
+      "model": "Gradient Boosting",
+      "accuracy": 0.9695507133224501,
+      "precision": 0.9130982367758187,
+      "recall": 0.9073842302878599,
+      "f1": 0.9102322661644695,
+      "roc_auc": 0.9925373738783696,
+      "train_seconds": 7.49
+    },
+    {
+      "model": "Random Forest",
+      "accuracy": 0.9665696642770956,
+      "precision": 0.9104859335038363,
+      "recall": 0.8911138923654568,
+      "f1": 0.900695762175838,
+      "roc_auc": 0.9908769350615169,
+      "train_seconds": 1.24
+    },
+    {
+      "model": "Decision Tree",
+      "accuracy": 0.9651501171126411,
+      "precision": 0.9010942760942761,
+      "recall": 0.8931998331247393,
+      "f1": 0.8971296878273622,
+      "roc_auc": 0.9808574258420585,
+      "train_seconds": 0.2
+    },
+    {
+      "model": "Support Vector Machine (RBF)",
+      "accuracy": 0.9600397473206047,
+      "precision": 0.8814475873544093,
+      "recall": 0.8840216937838965,
+      "f1": 0.8827327640074984,
+      "roc_auc": 0.9686308728366839,
+      "train_seconds": 148.14
+    }
+  ]
+}
